@@ -41,8 +41,14 @@ setup_rbw() {
     read -r server_url
     if [[ -n "$server_url" ]]; then
         rbw config set base_url "$server_url"
+        if [[ "$server_url" == "https://api.bitwarden.com" ]]; then
+            rbw config set identity_url "https://identity.bitwarden.com"
+        else
+            print_warn "Using custom server. You may need to set identity_url manually if different."
+        fi
     else
         rbw config set base_url "https://api.bitwarden.com"
+        rbw config set identity_url "https://identity.bitwarden.com"
     fi
 
     print_info "Attempting to log in with rbw (if fails, will guide through registration)..."
