@@ -41,6 +41,8 @@ setup_rbw() {
     read -r server_url
     if [[ -n "$server_url" ]]; then
         rbw config set base_url "$server_url"
+    else
+        rbw config set base_url "https://api.bitwarden.com"
     fi
 
     print_info "Attempting to log in with rbw (if fails, will guide through registration)..."
@@ -72,12 +74,12 @@ setup_rbw() {
             print_info "Checking Bitwarden CLI login status..."
             if ! bw login --check &>/dev/null; then
                 print_info "Please log in to Bitwarden CLI (follow the prompts)..."
-                bw login >/dev/null
+                NODE_NO_WARNINGS=1 bw login >/dev/null
             fi
 
             print_info "Unlocking Bitwarden vault to retrieve API keys..."
             local BW_SESSION
-            BW_SESSION=$(bw unlock --raw)
+            BW_SESSION=$(NODE_NO_WARNINGS=1 bw unlock --raw)
             if [[ -z "$BW_SESSION" ]]; then
                 print_error "Failed to unlock bw."
                 return 1
