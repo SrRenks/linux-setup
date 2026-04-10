@@ -13,6 +13,7 @@ source "$SCRIPT_DIR/lib/yay.sh"
 source "$SCRIPT_DIR/lib/rbw.sh"
 source "$SCRIPT_DIR/lib/tpm.sh"
 source "$SCRIPT_DIR/lib/shell.sh"
+source "$SCRIPT_DIR/lib/hyprland.sh"
 source "$SCRIPT_DIR/lib/dotfiles.sh"
 source "$SCRIPT_DIR/lib/keyboard.sh"
 
@@ -20,7 +21,7 @@ source "$SCRIPT_DIR/lib/keyboard.sh"
 # Configuration
 #===============================
 REQUIRED_COMMANDS=(
-    zsh tmux nvim bat fzf zoxide lsd git curl wget xdg-open alacritty stow wl-copy
+    zsh tmux nvim bat fzf zoxide lsd git curl wget xdg-open kitty stow wl-copy
     lazygit yazi rbw
 )
 
@@ -104,6 +105,7 @@ main() {
     fi
 
     setup_tpm
+    setup_hyprland
     setup_dotfiles
     set_default_shell
     verify_commands
