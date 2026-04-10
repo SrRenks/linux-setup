@@ -25,7 +25,7 @@ setup_dotfiles() {
         fi
     fi
 
-    local dest="$HOME/dotfiles"
+    local dest="$(eval echo ~${SUDO_USER:-$USER})/dotfiles"
     if [[ -d "$dest" ]]; then
         print_warn "Directory $dest already exists. Skipping clone."
     else

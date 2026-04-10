@@ -13,7 +13,6 @@ source "$SCRIPT_DIR/lib/yay.sh"
 source "$SCRIPT_DIR/lib/rbw.sh"
 source "$SCRIPT_DIR/lib/tpm.sh"
 source "$SCRIPT_DIR/lib/shell.sh"
-source "$SCRIPT_DIR/lib/hyprland.sh"
 source "$SCRIPT_DIR/lib/dotfiles.sh"
 source "$SCRIPT_DIR/lib/keyboard.sh"
 
@@ -21,32 +20,52 @@ source "$SCRIPT_DIR/lib/keyboard.sh"
 # Configuration
 #===============================
 REQUIRED_COMMANDS=(
-    zsh tmux nvim bat fzf zoxide lsd git curl wget xdg-open kitty stow wl-copy
-    lazygit yazi rbw
-)
-
-EXTRA_PACKAGES=(
+    zsh
+    tmux
+    nvim
+    bat
+    fzf
+    zoxide
+    lsd
+    git
+    curl
+    wget
+    kitty
+    stow
+    kbd
+    wl-clipboard
     lazygit
     yazi
-    rbw
 )
+
+keep_sudo_alive() {
+  while true; do
+    sudo -v || exit 1
+    sleep 60
+  done
+}
+
 
 # ==============================
 # Main
 #===============================
 main() {
     print_info "Checking sudo access (you may be asked for your password)..."
+
+
     if ! sudo -v; then
         print_error "This script requires sudo privileges."
         exit 1
     fi
 
+    keep_sudo_alive &
+    SUDO_KEEPALIVE_PID=$!
+
+    trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
+
     detect_distro
 
-    local common_packages=(
-        zsh tmux neovim fzf zoxide lsd git curl wget stow wl-clipboard
-        bat xdg-utils alacritty unzip jq expect
-    )
+    local common_packages=("${REQUIRED_COMMANDS[@]}")
 
     case "$DISTRO_FAMILY" in
         debian)
@@ -66,16 +85,10 @@ main() {
             ;;
     esac
 
-    install_packages "${common_packages[@]}"
-
     install_yay
-
-    for pkg in "${EXTRA_PACKAGES[@]}"; do
-        if command -v "$pkg" &>/dev/null; then
-            print_info "$pkg already installed."
-        else
-            install_package "$pkg" || print_warn "Failed to install $pkg, continuing."
-        fi
+    for pkg in "${common_packages[@]}"; do
+        echo "[DEBUG] installing: $pkg"
+        install_package "$pkg"
     done
 
     echo ""
@@ -91,24 +104,27 @@ main() {
     echo ""
     print_info "Do you want to use Bitwarden as your SSH agent (via rbw)?"
     echo
-    echo "This will:"
-    echo "  - Install the Bitwarden CLI (bw) only if needed for registration."
-    echo "  - Use Bitwarden API keys from an item named 'bw-api'."
-    echo "  - Register rbw and start the SSH agent."
-    echo
     echo -n "This will configure rbw and start the agent. (Y/n) "
     read -r use_bitwarden
+
     if [[ -z "$use_bitwarden" || "$use_bitwarden" =~ ^[Yy]$ ]]; then
+
+        if ! command -v rbw &>/dev/null; then
+            print_info "rbw not found. Installing..."
+            install_package rbw || {
+                print_error "Failed to install rbw"
+                exit 1
+            }
+        fi
+
         setup_rbw
     else
         print_info "Skipping Bitwarden SSH agent setup."
     fi
 
     setup_tpm
-    setup_hyprland
     setup_dotfiles
     set_default_shell
-    verify_commands
 
     print_info "Installation complete!"
 }

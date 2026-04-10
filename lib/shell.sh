@@ -24,17 +24,3 @@ set_default_shell() {
     fi
 }
 
-verify_commands() {
-    print_info "Verifying installed commands..."
-    local missing=()
-    for cmd in "${REQUIRED_COMMANDS[@]}"; do
-        if ! command -v "$cmd" &>/dev/null; then
-            missing+=("$cmd")
-        fi
-    done
-    if [[ ${#missing[@]} -gt 0 ]]; then
-        print_warn "Missing commands: ${missing[*]}"
-    else
-        print_info "All required commands are available."
-    fi
-}
