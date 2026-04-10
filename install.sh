@@ -86,10 +86,7 @@ main() {
     esac
 
     install_yay
-    for pkg in "${common_packages[@]}"; do
-        echo "[DEBUG] installing: $pkg"
-        install_package "$pkg"
-    done
+    install_packages "${common_packages[@]}"
 
     echo ""
     print_info "Do you want to configure the TTY keyboard for US International (accents, cedilla)?"
